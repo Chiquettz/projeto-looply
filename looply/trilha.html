@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilha — Looply</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goTo('landing')">
+    <img class="logo-img" src="" alt="Looply">
+  </div>
+  <div class="nav-links">
+    <button class="nav-link" id="nl-home" onclick="goTo('landing')">Início</button>
+    <button class="nav-link" id="nl-trails" onclick="reqTrails()">Trilhas</button>
+    <button class="nav-link" id="nl-profile" style="display:none" onclick="goTo('profile')">Meu Perfil</button>
+  </div>
+  <div class="nav-right">
+    <div class="xp-badge" id="xp-badge" style="display:none">
+      <div class="xp-dot"></div><span id="xp-disp">0 XP</span>
+    </div>
+    <button class="theme-btn" id="tbtn" onclick="toggleTheme()">🌙</button>
+    <button class="btn-sm" id="btn-login" onclick="openAuth('login')">Entrar</button>
+    <button class="btn-outline" id="btn-signup" onclick="openAuth('signup')">Cadastrar</button>
+    <button class="btn-sm" id="btn-logout" style="display:none" onclick="logout()">Sair</button>
+    <button class="hamburger" id="hbg" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mob-menu">
+  <button class="nav-link" onclick="goTo('landing');closeMenu()">🏠 Início</button>
+  <button class="nav-link" onclick="reqTrails();closeMenu()">🌿 Trilhas</button>
+  <button class="nav-link" id="ml-profile" style="display:none" onclick="goTo('profile');closeMenu()">👤 Meu Perfil</button>
+  <div class="mob-divider"></div>
+  <div class="mob-btns" id="m-auth">
+    <button class="btn-outline" onclick="openAuth('login');closeMenu()">Entrar</button>
+    <button class="btn-sm" onclick="openAuth('signup');closeMenu()">Cadastrar</button>
+  </div>
+  <div class="mob-btns" id="m-user" style="display:none">
+    <div class="xp-badge"><div class="xp-dot"></div><span id="m-xp">0 XP</span></div>
+    <button class="btn-outline" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div class="overlay" id="auth-ov">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAuth()">✕</button>
+    <div class="modal-logo"><img class="logo-img" src="" alt="Looply"></div>
+    <div id="auth-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ACTIVITY OVERLAY -->
+<div class="overlay" id="act-ov">
+  <div class="act-modal" id="act-modal">
+    <button class="modal-x" onclick="closeAct()">✕</button>
+    <div id="act-content"></div>
+  </div>
+</div>
+
+<div class="pg-pad">
+  <div class="td-hdr">
+    <button class="back-btn" onclick="goTo('trails')">← Voltar para Trilhas</button>
+    <h2 id="det-title"></h2>
+    <p id="det-desc"></p>
+    <div class="xp-chips">
+      <div class="chip"><span>XP Ganho</span><span id="d-xpe">0 XP</span></div>
+      <div class="chip"><span>XP Total</span><span id="d-xpt">0 XP</span></div>
+      <div class="chip"><span>Progresso</span><span id="d-prog">0/5</span></div>
+    </div>
+  </div>
+  <div class="node-path" id="node-path"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+let currentTrailId = new URLSearchParams(location.search).get('id');
+let answered = false;
+let currentQIdx = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!currentUser) { goTo('landing'); return; }
+  if (!currentTrailId || !trails.find(t => t.id === currentTrailId)) { goTo('trails'); return; }
+  renderTrailDetail(currentTrailId);
+  document.getElementById('act-ov').addEventListener('click', e => { if(e.target===document.getElementById('act-ov')) closeAct(); });
+});
+
+function renderTrailDetail(id) {
+  const trail = trails.find(t => t.id === id);
+  const s = getState();
+  const ts = s.trails[id] || {completed:[],xpEarned:0};
+  document.getElementById('det-title').textContent = trail.icon + ' ' + trail.title;
+  document.getElementById('det-desc').textContent = trail.desc;
+  document.getElementById('d-xpe').textContent = ts.xpEarned + ' XP';
+  document.getElementById('d-xpt').textContent = trail.totalXP + ' XP';
+  document.getElementById('d-prog').textContent = ts.completed.length + '/5';
+  const path = document.getElementById('node-path');
+  path.innerHTML = '';
+  trail.activities.forEach((act, i) => {
+    const isDone = ts.completed.includes(i);
+    const isCurrent = !isDone && (i === 0 || ts.completed.includes(i-1));
+    const isLocked = !isDone && !isCurrent;
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'connector' + (ts.completed.includes(i-1) ? ' done' : '');
+      path.appendChild(conn);
+    }
+    const node = document.createElement('div');
+    node.className = 'trail-node ' + (isDone ? 'done' : isCurrent ? 'current' : 'locked');
+    const diffLabel = DIFFS[i], diffCls = DCLS[i];
+    node.innerHTML = `
+      <div class="ncircle">
+        ${isLocked ? '🔒' : act.icon}
+        ${i > 0 && !isLocked ? `<div class="diff-pip ${i>=4?'expert':i>=2?'hard':''}">${diffLabel}</div>` : ''}
+        ${isDone ? '<div class="ncheck">✓</div>' : ''}
+      </div>
+      <div class="ninfo">
+        <h4>${act.title}</h4>
+        <p>${act.desc.substring(0,58)}…</p>
+        ${isDone ? `<div class="nxp">+${act.xp} XP ✓</div>` : ''}
+        ${isCurrent ? `<div class="nxp">+${act.xp} XP disponível</div><div class="ndiff ${diffCls}">Dificuldade: ${diffLabel}</div>` : ''}
+        ${isLocked ? '<div class="nlocked">🔒 Complete a etapa anterior</div>' : ''}
+      </div>
+      ${!isLocked
+        ? `<button class="nbtn" onclick="openAct('${id}',${i},0)">${isDone ? 'Revisar' : 'Iniciar'}</button>`
+        : '<button class="nbtn dis" disabled>Bloqueado</button>'}`;
+    path.appendChild(node);
+  });
+}
+
+function openAct(trailId, actIdx, qIdx) {
+  const trail = trails.find(t => t.id === trailId);
+  const act = trail.activities[actIdx];
+  const s = getState();
+  const ts = s.trails[trailId] || {completed:[],xpEarned:0};
+  const isDone = ts.completed.includes(actIdx);
+  answered = false;
+  currentQIdx = qIdx || 0;
+  const q = act.questions[currentQIdx % act.questions.length];
+  const diffLabel = DIFFS[actIdx];
+  const dBadgeCls = actIdx >= 4 ? 'd-expert' : actIdx >= 2 ? 'd-hard' : actIdx >= 1 ? 'd-med' : 'd-easy';
+  const c = document.getElementById('act-content');
+  c.innerHTML = `
+    <div class="a-step">Atividade ${actIdx+1} de 5 · ${trail.tag} · Pergunta ${(currentQIdx%act.questions.length)+1}</div>
+    <div class="diff-badge ${dBadgeCls}">
+      ${actIdx>=4?'🟣':actIdx>=2?'🔴':actIdx>=1?'🟡':'🟢'} Dificuldade: ${diffLabel}
+    </div>
+    <h3>${act.icon} ${act.title}</h3>
+    <p class="act-desc">${act.desc}</p>
+    <div id="qa-area">
+      <p class="quiz-q">📝 ${q.q}</p>
+      <div class="quiz-opts" id="q-opts">
+        ${q.opts.map((o,i)=>`
+          <div class="qopt" id="qo${i}" onclick="selectOpt(${i},${q.c},${act.xp},'${trailId}',${actIdx})">
+            <div class="oletter">${String.fromCharCode(65+i)}</div><span>${o}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="res-box" id="res-box">
+      <div class="res-em" id="res-em"></div>
+      <h4 id="res-title"></h4>
+      <div class="xp-earn" id="res-xp"></div>
+      <p id="res-msg"></p>
+      <div class="res-acts" id="res-acts"></div>
+    </div>
+    <div class="mftr">
+      <span class="m-xp-lbl">Vale <strong>+${act.xp} XP</strong></span>
+      <button class="btn-close-act" onclick="closeAct()">Fechar</button>
+    </div>`;
+  if (isDone) {
+    document.getElementById('qa-area').style.display = 'none';
+    showRes(true, act.xp, true, trailId, actIdx);
+  }
+  document.getElementById('act-ov').classList.add('open');
+}
+
+function selectOpt(idx, correct, xp, trailId, actIdx) {
+  if (answered) return;
+  answered = true;
+  document.querySelectorAll('.qopt').forEach((o, i) => {
+    if (i === correct) o.classList.add('correct');
+    else if (i === idx && idx !== correct) o.classList.add('wrong');
+    o.onclick = null;
+  });
+  const ok = idx === correct;
+  if (ok) {
+    const s = getState();
+    if (!s.trails[trailId]) s.trails[trailId] = {completed:[],xpEarned:0};
+    const ts = s.trails[trailId];
+    if (!ts.completed.includes(actIdx)) {
+      ts.completed.push(actIdx); ts.xpEarned += xp; s.totalXP += xp; saveState(s);
+    }
+    const trail = trails.find(t => t.id === trailId);
+    if (ts.completed.length === trail.activities.length) {
+      s.totalXP += 100; ts.xpEarned += 100; saveState(s);
+      setTimeout(() => showToast('🏆 Trilha completa! +100 XP bônus!'), 1200);
+    }
+  }
+  setTimeout(() => {
+    showRes(ok, ok ? xp : 0, false, trailId, actIdx);
+    syncXP();
+    renderTrailDetail(currentTrailId);
+  }, 600);
+}
+
+function showRes(success, xp, review, trailId, actIdx) {
+  document.getElementById('qa-area').style.display = 'none';
+  const rb = document.getElementById('res-box');
+  rb.classList.add('show');
+  const trail = trails.find(t => t.id === trailId);
+  const act = trail.activities[actIdx];
+  const nextQ = (currentQIdx + 1) % act.questions.length;
+  if (review) {
+    rb.querySelector('#res-em').textContent = '✅';
+    rb.querySelector('#res-title').textContent = 'Atividade já concluída!';
+    rb.querySelector('#res-xp').textContent = '+' + xp + ' XP';
+    rb.querySelector('#res-msg').textContent = 'Você completou esta atividade. Revise quando quiser!';
+    rb.querySelector('#res-acts').innerHTML = `<button class="btn-close-act" onclick="closeAct()">Fechar</button>`;
+  } else if (success) {
+    rb.querySelector('#res-em').textContent = '🎉';
+    rb.querySelector('#res-title').textContent = 'Resposta Correta!';
+    rb.querySelector('#res-xp').textContent = '+' + xp + ' XP';
+    rb.querySelector('#res-msg').textContent = 'Ótimo! Você desbloqueou a próxima etapa. Continue sua jornada!';
+    rb.querySelector('#res-acts').innerHTML = `<button class="btn-close-act" onclick="closeAct()">Continuar ✓</button>`;
+    showToast('+' + xp + ' XP ganhos! 🌱');
+  } else {
+    rb.querySelector('#res-em').textContent = '😅';
+    rb.querySelector('#res-title').textContent = 'Quase lá!';
+    rb.querySelector('#res-xp').textContent = '';
+    rb.querySelector('#res-msg').textContent = 'Não foi dessa vez. O que você quer fazer?';
+    rb.querySelector('#res-acts').innerHTML = `
+      <button class="btn-retry" onclick="openAct('${trailId}',${actIdx},${currentQIdx})">🔄 Repetir esta pergunta</button>
+      <button class="btn-newq" onclick="openAct('${trailId}',${actIdx},${nextQ})">✨ Nova pergunta sobre o tema</button>`;
+  }
+}
+
+function closeAct() {
+  document.getElementById('act-ov').classList.remove('open');
+  answered = false;
+}
+</script>
+</body></html>

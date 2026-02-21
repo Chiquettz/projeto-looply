@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilhas — Looply</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goTo('landing')">
+    <img class="logo-img" src="" alt="Looply">
+  </div>
+  <div class="nav-links">
+    <button class="nav-link" id="nl-home" onclick="goTo('landing')">Início</button>
+    <button class="nav-link" id="nl-trails" onclick="reqTrails()">Trilhas</button>
+    <button class="nav-link" id="nl-profile" style="display:none" onclick="goTo('profile')">Meu Perfil</button>
+  </div>
+  <div class="nav-right">
+    <div class="xp-badge" id="xp-badge" style="display:none">
+      <div class="xp-dot"></div><span id="xp-disp">0 XP</span>
+    </div>
+    <button class="theme-btn" id="tbtn" onclick="toggleTheme()">🌙</button>
+    <button class="btn-sm" id="btn-login" onclick="openAuth('login')">Entrar</button>
+    <button class="btn-outline" id="btn-signup" onclick="openAuth('signup')">Cadastrar</button>
+    <button class="btn-sm" id="btn-logout" style="display:none" onclick="logout()">Sair</button>
+    <button class="hamburger" id="hbg" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mob-menu">
+  <button class="nav-link" onclick="goTo('landing');closeMenu()">🏠 Início</button>
+  <button class="nav-link" onclick="reqTrails();closeMenu()">🌿 Trilhas</button>
+  <button class="nav-link" id="ml-profile" style="display:none" onclick="goTo('profile');closeMenu()">👤 Meu Perfil</button>
+  <div class="mob-divider"></div>
+  <div class="mob-btns" id="m-auth">
+    <button class="btn-outline" onclick="openAuth('login');closeMenu()">Entrar</button>
+    <button class="btn-sm" onclick="openAuth('signup');closeMenu()">Cadastrar</button>
+  </div>
+  <div class="mob-btns" id="m-user" style="display:none">
+    <div class="xp-badge"><div class="xp-dot"></div><span id="m-xp">0 XP</span></div>
+    <button class="btn-outline" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div class="overlay" id="auth-ov">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAuth()">✕</button>
+    <div class="modal-logo"><img class="logo-img" src="" alt="Looply"></div>
+    <div id="auth-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="pg-pad">
+  <div class="pg-hdr">
+    <h2>🌿 Trilhas de Conhecimento</h2>
+    <p>Escolha uma trilha e inicie sua jornada sustentável.</p>
+  </div>
+  <div class="trails-grid" id="trails-grid"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+// Mark nav active
+document.addEventListener('DOMContentLoaded', () => {
+  const e = document.getElementById('nl-trails'); if(e) e.classList.add('active');
+});
+
+function renderTrails() {
+  if (!currentUser) { goTo('landing'); return; }
+  const s = getState();
+  document.getElementById('trails-grid').innerHTML = trails.map(t => {
+    const ts = s.trails[t.id] || {completed:[],xpEarned:0};
+    const done = ts.completed.length;
+    const pct = Math.round((done/5)*100);
+    return `<div class="trail-card" onclick="openTrail('${t.id}')">
+      <div class="t-tag">${t.tag}</div>
+      <h3>${t.icon} ${t.title}</h3>
+      <p>${t.desc}</p>
+      <div class="t-pbar"><div class="t-pfill" style="width:${pct}%"></div></div>
+      <div class="t-foot"><span>${done}/5 atividades · ${pct}%</span><span class="t-xp">+${t.totalXP} XP</span></div>
+    </div>`;
+  }).join('');
+}
+
+function openTrail(id) {
+  goTo('trail-detail', id);
+}
+
+document.addEventListener('DOMContentLoaded', renderTrails);
+</script>
+</body></html>

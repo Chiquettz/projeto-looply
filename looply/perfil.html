@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perfil — Looply</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goTo('landing')">
+    <img class="logo-img" src="" alt="Looply">
+  </div>
+  <div class="nav-links">
+    <button class="nav-link" id="nl-home" onclick="goTo('landing')">Início</button>
+    <button class="nav-link" id="nl-trails" onclick="reqTrails()">Trilhas</button>
+    <button class="nav-link" id="nl-profile" style="display:none" onclick="goTo('profile')">Meu Perfil</button>
+  </div>
+  <div class="nav-right">
+    <div class="xp-badge" id="xp-badge" style="display:none">
+      <div class="xp-dot"></div><span id="xp-disp">0 XP</span>
+    </div>
+    <button class="theme-btn" id="tbtn" onclick="toggleTheme()">🌙</button>
+    <button class="btn-sm" id="btn-login" onclick="openAuth('login')">Entrar</button>
+    <button class="btn-outline" id="btn-signup" onclick="openAuth('signup')">Cadastrar</button>
+    <button class="btn-sm" id="btn-logout" style="display:none" onclick="logout()">Sair</button>
+    <button class="hamburger" id="hbg" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mob-menu">
+  <button class="nav-link" onclick="goTo('landing');closeMenu()">🏠 Início</button>
+  <button class="nav-link" onclick="reqTrails();closeMenu()">🌿 Trilhas</button>
+  <button class="nav-link" id="ml-profile" style="display:none" onclick="goTo('profile');closeMenu()">👤 Meu Perfil</button>
+  <div class="mob-divider"></div>
+  <div class="mob-btns" id="m-auth">
+    <button class="btn-outline" onclick="openAuth('login');closeMenu()">Entrar</button>
+    <button class="btn-sm" onclick="openAuth('signup');closeMenu()">Cadastrar</button>
+  </div>
+  <div class="mob-btns" id="m-user" style="display:none">
+    <div class="xp-badge"><div class="xp-dot"></div><span id="m-xp">0 XP</span></div>
+    <button class="btn-outline" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div class="overlay" id="auth-ov">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAuth()">✕</button>
+    <div class="modal-logo"><img class="logo-img" src="" alt="Looply"></div>
+    <div id="auth-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="pg-pad">
+  <div class="pg-hdr">
+    <h2>👤 Meu Perfil</h2>
+    <p>Acompanhe seu progresso e conquistas.</p>
+  </div>
+  <div class="prof-grid">
+    <div class="pcard">
+      <div class="pavatar" id="p-av">🌱</div>
+      <div class="pname" id="p-nm">—</div>
+      <div class="pemail" id="p-em">—</div>
+      <div class="pstat"><span class="pstat-l">XP Total</span><span class="pstat-v g" id="p-xp">0 XP</span></div>
+      <div class="pstat"><span class="pstat-l">Nível</span><span class="pstat-v" id="p-lv">1 — Semente</span></div>
+      <div class="pstat"><span class="pstat-l">Trilhas Completas</span><span class="pstat-v" id="p-tr">0</span></div>
+      <div class="pstat"><span class="pstat-l">Atividades Feitas</span><span class="pstat-v" id="p-ac">0</span></div>
+      <div class="plvlbar">
+        <div class="plvlbar-lbl"><span id="p-ll">Nível 1 — Semente</span><span id="p-xn">100 XP</span></div>
+        <div class="plvlbar-track"><div class="plvlbar-fill" id="p-lb" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="pcard">
+      <h3 style="font-family:Nunito,sans-serif;font-size:1rem;font-weight:800;margin-bottom:1rem">🗺️ Progresso nas Trilhas</h3>
+      <div id="p-trails"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (!currentUser) { goTo('landing'); return; }
+  const e = document.getElementById('nl-profile'); if(e) e.classList.add('active');
+  renderProfile();
+});
+
+function renderProfile() {
+  const s = getState();
+  const xp = s.totalXP;
+  const lv = getLv(xp);
+  const cur = LEVELS[lv], nxt = LEVELS[Math.min(lv+1, LEVELS.length-1)];
+  const pct = lv === LEVELS.length-1 ? 100 : Math.round(((xp-cur.xp)/(nxt.xp-cur.xp))*100);
+  const totalActs = Object.values(s.trails).reduce((a,t)=>a+t.completed.length,0);
+  const doneTrails = Object.values(s.trails).filter(t=>t.completed.length===5).length;
+  document.getElementById('p-av').textContent = LV_EM[lv];
+  document.getElementById('p-nm').textContent = currentUser.name;
+  document.getElementById('p-em').textContent = currentUser.email;
+  document.getElementById('p-xp').textContent = xp + ' XP';
+  document.getElementById('p-lv').textContent = 'Nível '+(lv+1)+' — '+cur.n;
+  document.getElementById('p-tr').textContent = doneTrails;
+  document.getElementById('p-ac').textContent = totalActs;
+  document.getElementById('p-ll').textContent = 'Nível '+(lv+1)+' — '+cur.n;
+  document.getElementById('p-xn').textContent = lv===LEVELS.length-1?'Max!':nxt.xp+' XP';
+  document.getElementById('p-lb').style.width = pct + '%';
+  document.getElementById('p-trails').innerHTML = trails.map(t => {
+    const ts = s.trails[t.id] || {completed:[],xpEarned:0};
+    const p = Math.round((ts.completed.length/5)*100);
+    return `<div class="pti">
+      <div class="pti-h"><span class="pti-n">${t.icon} ${t.title}</span><span class="pti-x">${ts.xpEarned}/${t.totalXP} XP</span></div>
+      <div class="pti-b"><div class="pti-bf" style="width:${p}%"></div></div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body></html>
