@@ -2,16 +2,22 @@
 const DIFFS = ["Fácil","Médio","Difícil","Difícil","Expert"];
 const DCLS  = ["easy","med","hard","hard","expert"];
 const LEVELS = [
-  {n:"Semente",xp:0},{n:"Broto",xp:100},{n:"Muda",xp:250},{n:"Arbusto",xp:500},
-  {n:"Árvore",xp:900},{n:"Floresta",xp:1400},{n:"Guardião",xp:2000}
+  {n:"Semente",xp:0}, {n:"Broto",xp:100}, {n:"Muda",xp:250}, {n:"Arbusto",xp:500},
+  {n:"Árvore",xp:900}, {n:"Bosque",xp:1400}, {n:"Floresta",xp:2000},
+  {n:"Oceano",xp:2800}, {n:"Terra",xp:3800}, {n:"Guardião do Planeta",xp:5000}
 ];
-const LV_EM = ["🌱","🌿","🌳","🦋","🌺","🦅","🌍"];
+const LV_EM = ["🌱","🌿","🪴","🌾","🌳","🎋","🪵","🌊","🌎","🌟"];
+
 function getLv(xp){let l=0;for(let i=0;i<LEVELS.length;i++)if(xp>=LEVELS[i].xp)l=i;return l;}
 
 // ─── TRAIL DATA ──────────────────────────────────────────────────────
 const trails = [
 {id:"reciclagem",tag:"Reciclagem",icon:"♻️",title:"Reciclagem Básica",
- desc:"Entenda o que pode ser reciclado, como separar resíduos e o impacto da reciclagem no planeta.",totalXP:250,
+ desc:"Entenda o que pode ser reciclado, como separar resíduos e o impacto da reciclagem no planeta.",totalXP:350,
+  content: {
+     text: "A reciclagem transforma resíduos em novos recursos, reduzindo a extração de matéria-prima e a poluição dos solos. Aprenda a separar corretamente o lixo e a importância de cada material para o meio ambiente.",
+     video: "https://www.youtube.com/embed/ITur0JNJZos?si=xiVU7WvT42P77A9F"
+   },
  activities:[
   {title:"O que é Reciclagem?",icon:"♻️",xp:40,desc:"Aprenda o conceito de reciclagem e sua importância para preservação ambiental.",
    questions:[
@@ -40,7 +46,11 @@ const trails = [
     {q:"Qual dos R's NÃO faz parte da hierarquia de resíduos da economia circular?",opts:["Reduzir","Reutilizar","Reciclar","Rejeitar (gerar mais resíduos)"],c:3}]}
  ]},
 {id:"energia",tag:"Energia Limpa",icon:"☀️",title:"Energia Limpa",
- desc:"Explore fontes de energia renovável, eficiência energética e o futuro sustentável.",totalXP:250,
+ desc:"Explore fontes de energia renovável, eficiência energética e o futuro sustentável.",totalXP:350,
+ content: {
+     text: "A transição energética para fontes renováveis é fundamental para reduzir a emissão de gases de efeito estufa. Conheça as principais fontes de energia limpa, seus benefícios e desafios para um futuro sustentável.",
+     video: "https://www.youtube.com/embed/rs-kBJKCABA?si=L11vfmhN5BXhrxHd"
+  },
  activities:[
   {title:"Fontes de Energia",icon:"⚡",xp:40,desc:"Conheça as diferentes fontes de energia e a diferença entre renováveis e não-renováveis.",
    questions:[
@@ -69,7 +79,11 @@ const trails = [
     {q:"O Acordo de Paris para limitar aquecimento a 1,5°C exige emissões líquidas zero globais até:",opts:["2030","2050","2070","2100"],c:1}]}
  ]},
 {id:"agua",tag:"Água",icon:"💧",title:"Água & Oceanos",
- desc:"Mergulhe no mundo dos recursos hídricos, oceanos e preservação da água.",totalXP:250,
+ desc:"Mergulhe no mundo dos recursos hídricos, oceanos e preservação da água.",totalXP:350,
+  content: {
+     text: "Embora a Terra seja o 'planeta azul', apenas uma fração mínima da água é doce e acessível para o consumo humano. A gestão sustentável dos recursos hídricos é crucial para a sobrevivência humana e a saúde dos ecossistemas. Descubra os desafios e soluções para proteger nossos rios, lagos e oceanos.",
+     video: "https://www.youtube.com/embed/-UmOPQRpRIE?si=yATXUVp1pUcWT_p8"
+  },
  activities:[
   {title:"Ciclo da Água",icon:"💧",xp:40,desc:"Como a água se move pela Terra e sua importância para todos os ecossistemas.",
    questions:[
@@ -98,7 +112,11 @@ const trails = [
     {q:"O termo 'Day Zero' ficou conhecido pela crise hídrica da Cidade do Cabo (2018). Refere-se ao:",opts:["Dia mundial da água","Dia em que torneiras seriam desligadas por esgotamento dos reservatórios","Festival ambiental anual","Meta de emissão zero de poluentes hídricos"],c:1}]}
  ]},
 {id:"biodiversidade",tag:"Biodiversidade",icon:"🌿",title:"Biodiversidade",
- desc:"Explore a diversidade de vida, extinção em massa e estratégias de conservação.",totalXP:250,
+ desc:"Explore a diversidade de vida, extinção em massa e estratégias de conservação.",totalXP:350,
+   content: {
+     text: "A perda acelerada de espécies ameaça a estabilidade dos ecossistemas e a sobrevivência humana. Descubra a importância da biodiversidade, as causas da extinção e como podemos proteger a vida em nosso planeta.",
+     video: "https://www.youtube.com/embed/F7JYu1CUocY?si=5ZRq48gnGUBUS4T4"
+  },
  activities:[
   {title:"O que é Biodiversidade?",icon:"🌿",xp:40,desc:"Entenda o conceito de biodiversidade e por que ela é o alicerce da vida na Terra.",
    questions:[
@@ -127,7 +145,11 @@ const trails = [
     {q:"A 'biologia de populações mínimas viáveis' determina o tamanho mínimo de uma população para:",opts:["Ser caçada legalmente","Sobreviver a longo prazo com baixo risco de extinção","Ser considerada espécie","Receber proteção legal"],c:1}]}
  ]},
 {id:"consumo",tag:"Consumo",icon:"🛍️",title:"Consumo Consciente",
- desc:"Repense hábitos de consumo: pegada ecológica, fast fashion e desperdício alimentar.",totalXP:250,
+ desc:"Repense hábitos de consumo: pegada ecológica, fast fashion e desperdício alimentar.",totalXP:350,
+   content: {
+     text: "Consumir consciente é entender que cada compra tem um impacto ambiental e social por trás. Aprenda a reduzir seu impacto e apoiar práticas mais sustentáveis.",
+     video: "https://www.youtube.com/embed/lBuJHl-PTYc?si=MKx0tRELmirU1d_s"
+  },
  activities:[
   {title:"Pegada Ecológica",icon:"👣",xp:40,desc:"O que é a pegada ecológica e como calcular o impacto real do seu estilo de vida.",
    questions:[
@@ -156,7 +178,11 @@ const trails = [
     {q:"A 'agricultura regenerativa' se diferencia da orgânica por buscar ativamente:",opts:["Apenas eliminar pesticidas","Restaurar a saúde do solo, aumentar biodiversidade e sequestrar carbono","Maior produtividade","Reduzir uso de água"],c:1}]}
  ]},
 {id:"clima",tag:"Clima",icon:"🌡️",title:"Mudanças Climáticas",
- desc:"Do efeito estufa ao Acordo de Paris: compreenda e enfrente a crise climática.",totalXP:250,
+ desc:"Do efeito estufa ao Acordo de Paris: compreenda e enfrente a crise climática.",totalXP:350,
+   content: {
+     text: "Descubra as evidências científicas, os impactos já observados e as soluções para diminuir e adaptar-se a um clima em transformação.",
+     video: "https://www.youtube.com/embed/2_uCHB2bCbE?si=vvHTUu5upyWUN5ju"
+  }, 
  activities:[
   {title:"Efeito Estufa",icon:"🌡️",xp:40,desc:"Como funciona o efeito estufa e quais gases aceleram o aquecimento global.",
    questions:[
@@ -184,4 +210,103 @@ const trails = [
     {q:"O 'desinvestimento fóssil' é quando fundos e universidades:",opts:["Reduzem consumo de combustível","Retiram investimentos financeiros de empresas de combustíveis fósseis","Proíbem perfuração de petróleo","Taxam combustíveis"],c:1},
     {q:"Segundo estudo da Oxfam, os 1% mais ricos do mundo emitem tanto CO2 quanto:",opts:["Os 10% mais pobres","Os 50% mais pobres da humanidade","Os países em desenvolvimento","Os países da Europa"],c:1}]}
  ]},
+  {id:"ods",tag:"Ação Global",icon:"🎯",title:"Intervenção ODS", premium: true,
+   desc:"Conheça os Objetivos de Desenvolvimento Sustentável da ONU e proponha soluções reais.",totalXP:400,
+   content: {
+     text: "Os Objetivos de Desenvolvimento Sustentável (ODS) são um apelo global à ação para acabar com a pobreza, proteger o meio ambiente e o clima. Veja como a intervenção local gera impacto global.",
+     video: "https://www.youtube.com/embed/xa63pRkV2dQ?si=wrf8EnbPP2dN4fGP"
+   },
+   activities:[
+    {title:"A Agenda 2030",icon:"📚",xp:60,desc:"O que são os ODS e como foram criados.",
+     questions:[
+      {q:"Quantos são os Objetivos de Desenvolvimento Sustentável da ONU?",opts:["10","15","17","20"],c:2},
+      {q:"Em que ano a Agenda 2030 foi adotada pelos países membros da ONU?",opts:["2000","2010","2015","2020"],c:2},
+      {q:"Qual o lema central da Agenda 2030?",opts:["Lucro acima de tudo","Não deixar ninguém para trás","Crescimento industrial rápido","Tecnologia para todos"],c:1}]},
+    {title:"Fome e Pobreza",icon:"🤝",xp:60,desc:"A interligação entre meio ambiente e vulnerabilidade social (ODS 1 e 2).",
+     questions:[
+      {q:"Qual a relação direta entre mudanças climáticas e pobreza?",opts:["Nenhuma","Populações vulneráveis perdem colheitas e casas com extremos climáticos","Ricos poluem menos","O clima afeta apenas a economia urbana"],c:1},
+      {q:"A agricultura sustentável (ODS 2) visa:",opts:["Aumentar uso de agrotóxicos","Garantir segurança alimentar protegendo os ecossistemas","Desmatar para plantar mais","Focar apenas em exportação"],c:1},
+      {q:"Uma proposta de intervenção local para o ODS 2 é:",opts:["Comprar importados","Apoiar agricultura familiar e criar hortas comunitárias","Desperdiçar comida","Doar plásticos"],c:1}]},
+    {title:"Água e Saneamento",icon:"💧",xp:60,desc:"Garantir disponibilidade e manejo sustentável da água (ODS 6).",
+     questions:[
+      {q:"A falta de saneamento básico afeta principalmente:",opts:["A saúde pública e a qualidade dos rios locais","Apenas a estética urbana","O trânsito","A internet"],c:0},
+      {q:"Uma proposta de intervenção efetiva para preservação hídrica urbana é:",opts:["Lavar calçadas com mangueira","Implementar sistemas de captação de água da chuva em condomínios","Canalizar rios","Aumentar tarifas para todos"],c:1},
+      {q:"O desmatamento das matas ciliares impacta os rios causando:",opts:["Mais peixes","Assoreamento e seca das nascentes","Água mais limpa","Nenhum efeito"],c:1}]},
+    {title:"Consumo Responsável",icon:"♻️",xp:60,desc:"Padrões de produção e consumo (ODS 12).",
+     questions:[
+      {q:"A meta principal do ODS 12 é:",opts:["Produzir mais lixo","Fazer mais com menos e melhor, desvinculando crescimento de degradação","Aumentar o fast fashion","Extrair mais minérios"],c:1},
+      {q:"O que é a logística reversa?",opts:["Dirigir de ré","Obrigação de fabricantes recolherem e reciclarem seus produtos pós-consumo","Devolver compras online","Exportar lixo"],c:1},
+      {q:"Uma intervenção prática contra o desperdício é:",opts:["Comprar sempre coisas novas","Promover feiras de troca, conserto de eletrônicos e compostagem","Jogar comida no lixo comum","Queimar resíduos"],c:1}]},
+    {title:"Ação Climática Local",icon:"🌍",xp:60,desc:"Tomar medidas urgentes contra a mudança do clima (ODS 13).",
+     questions:[
+      {q:"Qual intervenção urbana ajuda a combater ilhas de calor?",opts:["Mais asfalto","Plantio massivo de árvores e criação de parques urbanos","Construir prédios espelhados","Remover praças"],c:1},
+      {q:"Como escolas podem intervir no ODS 13?",opts:["Ignorando o tema","Implementando educação ambiental prática e painéis solares","Aumentando uso de papel","Usando ar condicionado no máximo"],c:1},
+      {q:"O engajamento comunitário no ODS 13 envolve:",opts:["Esperar o governo agir","Pressionar líderes locais por políticas públicas de transição energética","Negar a ciência","Apenas reciclar plástico"],c:1}]}
+   ]},
+  {id:"circular",tag:"Economia",icon:"🔄",title:"Economia Circular", premium: true,
+   desc:"Vá além da reciclagem: repense o design e o ciclo de vida absoluto dos produtos.",totalXP:400,
+   content: {
+     text: "A Economia Circular propõe um sistema onde os recursos são regenerados e o desperdício é zero. Descubra como o design inteligente e novos modelos de negócio podem transformar nossa relação com os recursos.",
+     video: "https://www.youtube.com/embed/oHcoG0fX4PQ?si=YuqjBjGb2V44nJn0"
+   },
+   activities:[
+    {title:"Do Berço ao Berço",icon:"🌱",xp:60,desc:"O modelo linear vs o modelo circular.",
+     questions:[
+      {q:"A economia linear é baseada no conceito de:",opts:["Reduzir e reutilizar","Extrair, produzir, consumir e descartar","Regenerar a natureza","Alugar produtos"],c:1},
+      {q:"O design 'Cradle to Cradle' (Berço ao Berço) garante que:",opts:["O produto dure 1 ano","Os materiais voltem com segurança para a biosfera ou tecnosfera ao fim da vida","Tudo vá para o aterro","Os produtos sejam baratos"],c:1},
+      {q:"Na economia circular, o 'lixo' é considerado:",opts:["Um problema sem solução","Um erro de design e um recurso desperdiçado","Inegociável","Combustível apenas"],c:1}]},
+    {title:"Design Regenerativo",icon:"📐",xp:60,desc:"Criando produtos para não descartar.",
+     questions:[
+      {q:"O que é obsolescência programada?",opts:["Produtos feitos para durar para sempre","Estratégia onde produtos são desenhados para quebrar ou ficarem obsoletos rapidamente","Programa de reciclagem","Tecnologia sustentável"],c:1},
+      {q:"Um produto desenhado circularmente deve ser, acima de tudo:",opts:["Feito de um material só","Fácil de desmontar, reparar e atualizar","Totalmente colado","Descartável"],c:1},
+      {q:"Modularidade em eletrônicos permite:",opts:["Quebrem mais rápido","Trocar apenas a peça defeituosa em vez do aparelho todo","Gastar mais energia","Não poder consertar"],c:1}]},
+    {title:"Produto como Serviço",icon:"🤝",xp:60,desc:"Alugar o uso ao invés de comprar o objeto.",
+     questions:[
+      {q:"Qual a vantagem do modelo 'Produto como Serviço' (ex: alugar ferramentas)?",opts:["Gasta-se mais dinheiro","Reduz a extração de matérias-primas e a ociosidade do produto","A ferramenta quebra mais rápido","Fabricante lucra menos"],c:1},
+      {q:"Quando o fabricante mantém a posse do produto (aluguel), ele é incentivado a:",opts:["Fazer produtos frágeis","Fazer produtos duráveis, eficientes e recicláveis","Ignorar a manutenção","Usar materiais tóxicos"],c:1},
+      {q:"Um exemplo clássico de 'Produto como Serviço' é:",opts:["Comprar uma caneta de plástico","Serviços de compartilhamento de bicicletas ou carros","Comprar legumes","Jogar fora roupas velhas"],c:1}]},
+    {title:"Upcycling",icon:"✨",xp:60,desc:"Dar um propósito novo e de maior valor a um resíduo.",
+     questions:[
+      {q:"Qual a diferença entre Reciclagem e Upcycling?",opts:["Nenhuma","A reciclagem quebra o material; o upcycling reutiliza o material dando-lhe maior valor ou qualidade","Upcycling é queimar o lixo","Reciclagem é mais barata"],c:1},
+      {q:"Transformar uma lona velha de caminhão em uma bolsa de grife é um exemplo de:",opts:["Downcycling","Logística reversa","Upcycling","Compostagem"],c:2},
+      {q:"O Downcycling ocorre quando:",opts:["O material perde qualidade no processo de reciclagem (ex: papel reciclado)","O produto fica mais caro","Transforma-se em energia","Aumenta a durabilidade"],c:0}]},
+    {title:"Modelos de Negócio",icon:"💼",xp:60,desc:"Como as empresas ganham dinheiro sendo circulares.",
+     questions:[
+      {q:"Plataformas de compartilhamento (ex: brechós online) promovem a economia circular porque:",opts:["Estimulam o consumo rápido","Aumentam a vida útil do produto passando-o para novos usuários","Criam lixo digital","Cobram taxas altas"],c:1},
+      {q:"A 'simbiose industrial' é quando:",opts:["Indústrias competem","O resíduo de uma indústria se torna matéria-prima para outra","Fecham-se fábricas","Nega-se a tecnologia"],c:1},
+      {q:"Marcas que oferecem garantia vitalícia e reparo grátis estão focadas em:",opts:["Fidelizar clientes reduzindo o descarte e o consumo de novos recursos","Perder dinheiro","Fazer greenwashing","Aumentar suas emissões"],c:0}]}
+   ]},
+  {id:"cidades",tag:"Cidades",icon:"🏙️",title:"Cidades Inteligentes", premium: true,
+   desc:"Como o planejamento urbano e a tecnologia podem salvar os centros urbanos.",totalXP:400,
+   content: {
+     text: "Mais da metade da humanidade vive em cidades. Transformá-las em centros verdes, inteligentes e resilientes é vital para o futuro.",
+     video: "https://www.youtube.com/embed/am2WOYu4iFc?si=IeAItOyY0HZsbD9i"
+   },
+   activities:[
+    {title:"Mobilidade Urbana Limpa",icon:"🚲",xp:60,desc:"Repensando o trânsito e o espaço público.",
+     questions:[
+      {q:"Qual o modal de transporte que menos emite GEE por passageiro?",opts:["Carro particular","Avião","Bicicleta/Caminhada (Transporte Ativo)","Motocicleta"],c:2},
+      {q:"O conceito de 'Cidade de 15 Minutos' propõe:",opts:["Trens muito rápidos","Que todas as necessidades diárias estejam a 15 minutos de caminhada ou bicicleta de casa","Dirigir 15 minutos até o trabalho","Cidades muito pequenas"],c:1},
+      {q:"O que é o 'Traffic Evaporation' (Evaporação do Tráfego)?",opts:["Carros sumindo no calor","Quando ruas são fechadas para carros e o trânsito diminui, pois as pessoas mudam seus hábitos e rotas","Aumentar pistas para reduzir engarrafamento","Fumaça dos carros"],c:1}]},
+    {title:"Infraestrutura Verde",icon:"🌿",xp:60,desc:"Natureza no topo dos prédios e nas calçadas.",
+     questions:[
+      {q:"Qual a principal função ambiental de um telhado verde?",opts:["Enfeite estético","Reduzir ilhas de calor, isolar o prédio e reter água da chuva","Atrair insetos nocivos","Aumentar o gasto de energia"],c:1},
+      {q:"O que são 'Jardins de Chuva' (Biovaletas)?",opts:["Jardins regados à chuva","Depressões vegetadas projetadas para absorver e filtrar o escoamento da água das ruas, evitando enchentes","Jardins fechados em estufas","Hortas verticais"],c:1},
+      {q:"O efeito 'Ilha de Calor Urbana' ocorre porque:",opts:["O sol bate mais forte","Asfalto e concreto absorvem muito calor e há pouca vegetação","Há muito vidro nas janelas","Tem muita gente respirando"],c:1}]},
+    {title:"Construções Sustentáveis",icon:"🏢",xp:60,desc:"Arquitetura bioclimática e eficiência.",
+     questions:[
+      {q:"A 'Arquitetura Bioclimática' consiste em:",opts:["Projetar edifícios aproveitando o clima local (sol, vento) para conforto térmico com mínimo gasto de energia","Construir redomas de vidro","Usar apenas ar condicionado forte","Pintar os prédios de verde"],c:0},
+      {q:"O que um edifício 'Net Zero' faz?",opts:["Não tem janelas","Gera tanta energia renovável quanto consome anualmente","Não consome energia nenhuma","Fica no subsolo"],c:1},
+      {q:"O selo LEED em um edifício certifica que ele:",opts:["É o mais alto da cidade","Segue padrões rígidos de sustentabilidade, eficiência de água e energia","É feito só de madeira","Tem energia nuclear"],c:1}]},
+    {title:"Gestão Inteligente",icon:"💡",xp:60,desc:"O uso de dados (IoT) para o meio ambiente.",
+     questions:[
+      {q:"Como sensores inteligentes nas lixeiras de uma cidade ajudam o meio ambiente?",opts:["Limpam o lixo sozinhos","Otimizam a rota dos caminhões de coleta, economizando combustível e reduzindo emissões","Multam os cidadãos","Avisam quando chove"],c:1},
+      {q:"A iluminação pública inteligente (Smart Grids) funciona:",opts:["Ficando ligada de dia","Ajustando a intensidade do LED conforme o movimento nas ruas, poupando energia","Usando lâmpadas antigas incandescentes","Apenas com painéis solares gigantes"],c:1},
+      {q:"Medidores de água inteligentes ajudam a:",opts:["Aumentar a pressão da água","Detectar vazamentos invisíveis em tempo real na rede da cidade","Mudar a cor da água","Cobrar tarifas em dobro"],c:1}]},
+    {title:"Cidadania Ativa",icon:"🙋",xp:60,desc:"O papel do morador na transformação da cidade.",
+     questions:[
+      {q:"O urbanismo tático envolve:",opts:["Intervenções rápidas, de baixo custo, feitas pelos cidadãos para testar melhorias no espaço público (ex: pintar ruas para pedestres)","Construir pontes gigantes","Apenas reclamar na prefeitura","Esconder ruas no mapa"],c:0},
+      {q:"Orçamentos participativos permitem que:",opts:["A prefeitura guarde o dinheiro","Moradores votem e decidam onde investir parte da verba pública (ex: em praças sustentáveis)","Bancos comandem as obras","Não se pague impostos"],c:1},
+      {q:"Hortas urbanas comunitárias oferecem quais benefícios?",opts:["Nenhum","Apenas comida mais cara","Redução de ilhas de calor, segurança alimentar, coesão social e educação ambiental","Apenas estética"],c:2}]}
+   ]},
 ];

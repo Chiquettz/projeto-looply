@@ -55,12 +55,32 @@
   </div>
 </div>
 
+<div class="overlay" id="checkout-ov">
+  <div class="modal">
+    <button class="modal-x" onclick="document.getElementById('checkout-ov').classList.remove('open')">✕</button>
+    <h3 style="color:var(--amber); margin-bottom: 0.5rem;">Desbloquear Premium </h3>
+    <p class="modal-sub" style="margin-bottom: 1.5rem;">Acesse 3 novas trilhas exclusivas e um Game interativo.</p>
+    
+    <div style="background:var(--inp); padding:1.2rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1.5rem;">
+      <div style="display:flex; justify-content:space-between; color:var(--muted); font-size:0.9rem; margin-bottom:0.5rem;"><span>Assinatura Vitalícia</span><span>R$ 29,90</span></div>
+      <div style="display:flex; justify-content:space-between; color:var(--green); font-size:1.1rem; font-weight:800; border-top:1px dashed var(--border); padding-top:0.5rem;"><span>Total a Pagar</span><span>R$ 29,90</span></div>
+    </div>
+    
+    <label style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.8rem; color:var(--muted); cursor:pointer; margin-bottom:1.5rem;">
+      <input type="checkbox" id="chk-terms" onchange="togglePayBtn()">
+      Li e aceito os Termos de Uso e Política de Privacidade. Reconheço o valor único cobrado para liberação.
+    </label>
+    
+    <button class="btn-full" id="btn-pay" style="opacity:0.5; cursor:not-allowed;" disabled onclick="processPayment()">Confirmar Pagamento Seguro</button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <div class="pg-pad">
   <div class="pg-hdr">
-    <h2>🌿 Trilhas de Conhecimento</h2>
+    <h2>Trilhas de Conhecimento</h2>
     <p>Escolha uma trilha e inicie sua jornada sustentável.</p>
   </div>
   <div class="trails-grid" id="trails-grid"></div>
@@ -68,33 +88,117 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+
 <script>
-// Mark nav active
 document.addEventListener('DOMContentLoaded', () => {
   const e = document.getElementById('nl-trails'); if(e) e.classList.add('active');
+  renderTrails();
 });
 
 function renderTrails() {
   if (!currentUser) { goTo('landing'); return; }
   const s = getState();
-  document.getElementById('trails-grid').innerHTML = trails.map(t => {
+  
+  const freeTrails = trails.filter(t => !t.premium);
+  const premTrails = trails.filter(t => t.premium);
+  
+  let freeCompleted = 0;
+
+
+  const freeHtml = freeTrails.map(t => {
     const ts = s.trails[t.id] || {completed:[],xpEarned:0};
     const done = ts.completed.length;
-    const pct = Math.round((done/5)*100);
+    if (done === t.activities.length) freeCompleted++;
+    const pct = Math.round((done/t.activities.length)*100);
     return `<div class="trail-card" onclick="openTrail('${t.id}')">
       <div class="t-tag">${t.tag}</div>
       <h3>${t.icon} ${t.title}</h3>
       <p>${t.desc}</p>
       <div class="t-pbar"><div class="t-pfill" style="width:${pct}%"></div></div>
-      <div class="t-foot"><span>${done}/5 atividades · ${pct}%</span><span class="t-xp">+${t.totalXP} XP</span></div>
+      <div class="t-foot"><span>${done}/${t.activities.length} atividades</span><span class="t-xp">+${t.totalXP} XP</span></div>
     </div>`;
   }).join('');
+  
+ 
+  let premHtml = premTrails.map(t => {
+    const ts = s.trails[t.id] || {completed:[],xpEarned:0};
+    const done = ts.completed.length;
+    const pct = Math.round((done/t.activities.length)*100);
+    return `<div class="trail-card" onclick="openTrail('${t.id}')">
+      <div class="t-tag" style="background:var(--amber); color:#000;">Premium </div>
+      <h3>${t.icon} ${t.title}</h3>
+      <p>${t.desc}</p>
+      <div class="t-pbar"><div class="t-pfill" style="width:${pct}%"></div></div>
+      <div class="t-foot"><span>${done}/${t.activities.length} atividades</span><span class="t-xp">+${t.totalXP} XP</span></div>
+    </div>`;
+  }).join('');
+  
+  premHtml += `<div class="trail-card" style="border:2px dashed var(--amber);" onclick="goTo('game')">
+      <div class="t-tag" style="background:#7c3aed; color:#fff;">Arcade </div>
+      <h3>🎮 Recicle Certo</h3>
+      <p>Mini-game cronometrado: Arraste o lixo para a lixeira correta para ganhar combos e muito XP!</p>
+      <div class="t-foot"><span class="t-xp">XP Ilimitado!</span></div>
+    </div>`;
+
+ 
+  const isPrem = s.isPremium;
+
+  document.getElementById('trails-grid').innerHTML = `
+    <h3 style="grid-column: 1/-1; color: var(--green); margin-bottom: -0.5rem; margin-top: 1rem;">Trilhas Gratuitas</h3>
+    ${freeHtml}
+    
+    <h3 style="grid-column: 1/-1; color: var(--amber); margin-bottom: -0.5rem; margin-top: 2rem;">Área Premium</h3>
+    <div style="grid-column: 1/-1; position: relative;">
+      <div class="trails-grid" style="padding:0; margin:0; width:100%;">
+        ${premHtml}
+      </div>
+      
+      ${!isPrem ? `
+        <div style="position:absolute; inset:0; background:var(--overlay); backdrop-filter:blur(8px); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:18px; text-align:center; padding:2rem; z-index:10;">
+          ${freeCompleted >= 5 
+            ? `<h3 style="font-family:'Nunito',sans-serif; font-size:1.6rem; color:var(--amber);">🌟 Você é elegível!</h3><p style="margin-bottom:1.5rem;">Você concluiu as 5 trilhas gratuitas e desbloqueou a chance de assinar o Premium!</p><button class="btn-primary" onclick="openCheckout()">Assinar Premium (R$ 29,90)</button>`
+            : `<h3 style="font-family:'Nunito',sans-serif; font-size:1.6rem;">🔒 Área Premium</h3><p style="margin-bottom:1.5rem;">Complete 5 trilhas gratuitas para ter o direito de assinar o plano premium. (${freeCompleted}/5 concluídas)</p><button class="btn-primary" style="opacity:0.5; cursor:not-allowed;" disabled>Assinar Premium</button>`
+          }
+        </div>
+      ` : ''}
+    </div>
+  `;
 }
 
 function openTrail(id) {
+  const s = getState();
+  const trail = trails.find(t => t.id === id);
+  if (trail.premium && !s.isPremium) return; // Segurança extra
   goTo('trail-detail', id);
 }
 
-document.addEventListener('DOMContentLoaded', renderTrails);
+// LÓGICA DO PAGAMENTO
+function openCheckout() {
+  document.getElementById('chk-terms').checked = false;
+  togglePayBtn();
+  document.getElementById('checkout-ov').classList.add('open');
+}
+
+function togglePayBtn() {
+  const isChecked = document.getElementById('chk-terms').checked;
+  const btn = document.getElementById('btn-pay');
+  if(isChecked) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+  else { btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed'; }
+}
+
+function processPayment() {
+  const btn = document.getElementById('btn-pay');
+  btn.textContent = "Processando pagamento...";
+  btn.disabled = true;
+  
+  setTimeout(() => {
+    const s = getState();
+    s.isPremium = true;
+    saveState(s);
+    document.getElementById('checkout-ov').classList.remove('open');
+    showToast('🌟 Pagamento Aprovado! Bem-vindo ao Premium!');
+    renderTrails();
+  }, 2000);
+}
 </script>
 </body></html>

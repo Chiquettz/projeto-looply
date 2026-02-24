@@ -3,8 +3,8 @@ let currentUser = JSON.parse(localStorage.getItem('ll_cu') || 'null');
 let users = JSON.parse(localStorage.getItem('ll_u') || '{}');
 
 function getState() {
-  if (!currentUser) return {totalXP:0,trails:{}};
-  return JSON.parse(localStorage.getItem('ll_s_'+currentUser.email) || '{"totalXP":0,"trails":{}}');
+  if (!currentUser) return {totalXP:0,trails:{}, isPremium: false};
+  return JSON.parse(localStorage.getItem('ll_s_'+currentUser.email) || '{"totalXP":0,"trails":{},"isPremium":false}');
 }
 function saveState(s) {
   if (!currentUser) return;
@@ -42,6 +42,7 @@ function goTo(page, param) {
     else if (page === 'trails') location.href = 'trilhas.html';
     else if (page === 'trail-detail') location.href = 'trilha.html?id=' + (param || '');
     else if (page === 'profile') location.href = 'perfil.html';
+    else if (page === 'game') location.href = 'game.html'
   }, 220);
 }
 
@@ -153,3 +154,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (authOv) authOv.addEventListener('click', e => { if(e.target===authOv) closeAuth(); });
   updateNav();
 });
+
+

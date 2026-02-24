@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recicla Looply - Looply</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* CSS EXCLUSIVO DO JOGO */
+  .game-wrapper {
+    max-width: 900px; margin: 0 auto; padding: 1rem;
+    display: flex; flex-direction: column; gap: 2rem;
+  }
+  .game-hud {
+    display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;
+  }
+  .hud-item {
+    background: var(--bg3); border: 2px solid var(--border); padding: 0.6rem 1.2rem;
+    border-radius: 12px; font-family: "Nunito", sans-serif; font-weight: 800;
+  }
+  .hud-item span { color: var(--green); font-size: 1.2rem; }
+  
+  .play-area {
+    height: 250px; background: var(--bg2); border: 2px dashed var(--border);
+    border-radius: 16px; position: relative; overflow: hidden;
+  }
+  .trash-item {
+    position: absolute; font-size: 3rem; cursor: grab; user-select: none;
+    transition: transform 0.2s; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    z-index: 10;
+  }
+  .trash-item:active { cursor: grabbing; transform: scale(1.1); }
+  
+  .bins-container {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1rem;
+  }
+  .bin-zone {
+    height: 140px; border-radius: 12px; border: 3px solid transparent;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    padding-bottom: 1rem; color: #fff; font-weight: 900; font-size: 0.85rem;
+    transition: transform 0.2s, border-color 0.2s; position: relative;
+  }
+  .bin-zone::before { content: "♻️"; font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.5rem; }
+  .bin-zone.drag-over { transform: scale(1.08); border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.4); }
+  
+  /* Cores das Lixeiras Oficiais */
+  .bin-zone[data-type="papel"] { background-color: #3b82f6; } /* Azul */
+  .bin-zone[data-type="plastico"] { background-color: #ef4444; } /* Vermelho */
+  .bin-zone[data-type="vidro"] { background-color: #10b981; } /* Verde */
+  .bin-zone[data-type="metal"] { background-color: #eab308; } /* Amarelo */
+  .bin-zone[data-type="organico"] { background-color: #3b1e09; } /* Marrom */
+  .bin-zone[data-type="eletronico"] { background-color: #f97316; } /* Laranja */
+  
+  .game-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 100; border-radius: 16px; color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="goTo('landing')">
+    <img class="logo-img" src="imgs/looply-logo.png" alt="Looply">
+  </div>
+  <div class="nav-links">
+    <button class="nav-link" id="nl-home" onclick="goTo('landing')">Início</button>
+    <button class="nav-link" id="nl-trails" onclick="reqTrails()">Trilhas</button>
+    <button class="nav-link" id="nl-profile" style="display:none" onclick="goTo('profile')">Meu Perfil</button>
+  </div>
+  <div class="nav-right">
+    <div class="xp-badge" id="xp-badge" style="display:none">
+      <div class="xp-dot"></div><span id="xp-disp">0 XP</span>
+    </div>
+    <button class="theme-btn" id="tbtn" onclick="toggleTheme()">🌙</button>
+    <button class="btn-sm" id="btn-login" onclick="openAuth('login')">Entrar</button>
+    <button class="btn-outline" id="btn-signup" onclick="openAuth('signup')">Cadastrar</button>
+    <button class="btn-sm" id="btn-logout" style="display:none" onclick="logout()">Sair</button>
+    <button class="hamburger" id="hbg" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mob-menu">
+  <button class="nav-link" onclick="goTo('landing');closeMenu()">🏠 Início</button>
+  <button class="nav-link" onclick="reqTrails();closeMenu()">🌿 Trilhas</button>
+  <button class="nav-link" id="ml-profile" style="display:none" onclick="goTo('profile');closeMenu()">👤 Meu Perfil</button>
+  <div class="mob-divider"></div>
+  <div class="mob-btns" id="m-auth">
+    <button class="btn-outline" onclick="openAuth('login');closeMenu()">Entrar</button>
+    <button class="btn-sm" onclick="openAuth('signup');closeMenu()">Cadastrar</button>
+  </div>
+  <div class="mob-btns" id="m-user" style="display:none">
+    <div class="xp-badge"><div class="xp-dot"></div><span id="m-xp">0 XP</span></div>
+    <button class="btn-outline" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div class="overlay" id="auth-ov">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAuth()">✕</button>
+    <div class="modal-logo"><img class="logo-img" src="logo.png" alt="Looply"></div>
+    <div id="auth-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+<div class="pg-pad">
+  <div class="td-hdr" style="text-align: center;">
+    <button class="back-btn" onclick="goTo('trails')">← Voltar para Trilhas</button>
+    <h2>Recicle Certo</h2>
+    <p>Arraste rapidamente os resíduos para a lixeira correta antes que o tempo acabe!</p>
+    <div class="game-hud">
+      <div class="hud-item">⏱️ Tempo: <span id="timer-display">45</span>s</div>
+      <div class="hud-item">⭐ Pontos: <span id="score-display">0</span></div>
+      <div class="hud-item">🔥 Combo: <span id="combo-display">x1</span></div>
+    </div>
+  </div>
+
+  <div class="game-wrapper">
+    <div class="play-area" id="play-area">
+      <div class="game-overlay" id="start-overlay">
+        <h3 style="font-family:'Nunito',sans-serif; font-size: 1.8rem; margin-bottom:1rem; color:var(--green)">Pronto para o desafio?</h3>
+        <button class="btn-primary" onclick="startGame()">Iniciar Jogo</button>
+      </div>
+    </div>
+
+    <div class="bins-container">
+      <div class="bin-zone" data-type="papel">PAPEL</div>
+      <div class="bin-zone" data-type="plastico">PLÁSTICO</div>
+      <div class="bin-zone" data-type="vidro">VIDRO</div>
+      <div class="bin-zone" data-type="metal">METAL</div>
+      <div class="bin-zone" data-type="organico">ORGÂNICO</div>
+      <div class="bin-zone" data-type="eletronico">ELETRÔNICO</div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+// Base de dados de lixos do jogo
+const itemDB = [
+  { emoji: '📰', type: 'papel' }, { emoji: '📦', type: 'papel' }, { emoji: '🧻', type: 'papel' },
+  { emoji: '🥤', type: 'plastico' }, { emoji: '🛍️', type: 'plastico' }, { emoji: '🧴', type: 'plastico' },
+  { emoji: '🍾', type: 'vidro' }, { emoji: '🫙', type: 'vidro' }, { emoji: '🍷', type: 'vidro' },
+  { emoji: '🥫', type: 'metal' }, { emoji: '📎', type: 'metal' }, { emoji: '🔑', type: 'metal' },
+  { emoji: '🍎', type: 'organico' }, { emoji: '🍌', type: 'organico' }, { emoji: '🍂', type: 'organico' },
+  { emoji: '📱', type: 'eletronico' }, { emoji: '🔋', type: 'eletronico' }, { emoji: '💻', type: 'eletronico' }
+];
+
+let score = 0, time = 45, combo = 1;
+let gameInterval, spawnInterval;
+const playArea = document.getElementById('play-area');
+let draggedElementId = null;
+
+
+document.querySelectorAll('.bin-zone').forEach(bin => {
+  bin.addEventListener('dragover', e => { e.preventDefault(); bin.classList.add('drag-over'); });
+  bin.addEventListener('dragenter', e => { e.preventDefault(); bin.classList.add('drag-over'); });
+  bin.addEventListener('dragleave', () => { bin.classList.remove('drag-over'); });
+  
+  bin.addEventListener('drop', e => {
+    e.preventDefault();
+    bin.classList.remove('drag-over');
+    
+    // Pega o ID que foi setado no dragstart
+    const id = e.dataTransfer.getData('text/plain');
+    const draggedEl = document.getElementById(id);
+    if (!draggedEl) return; // Segurança
+
+    const expectedType = bin.getAttribute('data-type');
+    const actualType = draggedEl.getAttribute('data-type');
+
+    if (expectedType === actualType) {
+      // Acerto
+      score += (10 * combo);
+      combo++;
+      draggedEl.remove();
+      showToast('✅ +' + (10 * (combo-1)) + ' pts');
+    } else {
+      score = Math.max(0, score - 20); 
+      combo = 1;
+      showToast('❌ Lixeira Errada! -20 pts');
+    }
+    updateHud();
+  });
+});
+
+function startGame() {
+  document.getElementById('start-overlay').style.display = 'none';
+  playArea.innerHTML = ''; 
+  score = 0; time = 45; combo = 1;
+  updateHud();
+
+  for(let i=0; i<4; i++) spawnTrash();
+
+  gameInterval = setInterval(() => {
+    time--;
+    updateHud();
+    if (time <= 0) endGame();
+  }, 1000);
+
+  spawnInterval = setInterval(() => {
+    if (document.querySelectorAll('.trash-item').length < 12) spawnTrash();
+  }, 1200);
+}
+
+function spawnTrash() {
+  const item = itemDB[Math.floor(Math.random() * itemDB.length)];
+  const el = document.createElement('div');
+  el.className = 'trash-item';
+  el.textContent = item.emoji;
+  el.setAttribute('data-type', item.type);
+  el.draggable = true;
+  el.id = 'trash_' + Math.random().toString(36).substr(2, 9);
+  
+  const maxX = playArea.clientWidth - 60;
+  const maxY = playArea.clientHeight - 60;
+  el.style.left = Math.floor(Math.random() * maxX) + 'px';
+  el.style.top = Math.floor(Math.random() * maxY) + 'px';
+
+  el.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', el.id);
+    setTimeout(() => el.style.opacity = '0.4', 0);
+  });
+  el.addEventListener('dragend', () => {
+    el.style.opacity = '1';
+  });
+
+  playArea.appendChild(el);
+}
+
+function updateHud() {
+  document.getElementById('timer-display').textContent = time;
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('combo-display').textContent = 'x' + combo;
+}
+
+function endGame() {
+  clearInterval(gameInterval);
+  clearInterval(spawnInterval);
+  playArea.innerHTML = ''; // Limpa tela
+  
+  const xpGained = Math.floor(score / 5); 
+  
+  const endOverlay = document.createElement('div');
+  endOverlay.className = 'game-overlay';
+  endOverlay.innerHTML = `
+    <h3 style="font-family:'Nunito',sans-serif; font-size: 2rem; color:var(--amber)">Tempo Esgotado!</h3>
+    <p style="font-size: 1.2rem; margin: 1rem 0;">Você marcou ${score} pontos.</p>
+    <p style="font-size: 1.5rem; color: var(--green); font-weight: 800;">XP Ganho: +${xpGained} XP</p>
+    <button class="btn-primary" style="margin-top: 1.5rem;" onclick="goTo('trails')">Voltar às Trilhas</button>
+  `;
+  playArea.appendChild(endOverlay);
+
+  const state = getState();
+  state.totalXP += xpGained;
+  saveState(state);
+  setTimeout(()=> syncXP(), 500);
+}
+</script>
+</body>
+</html>

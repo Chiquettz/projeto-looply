@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trilha - Looply</title>
 <link rel="stylesheet" href="style.css">
-
+<style>
+.trail-content-block { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 2.5rem; width: 100%; text-align: left;}
+.trail-content-block h3 { color: var(--green); margin-bottom: 0.8rem; font-family: "Nunito", sans-serif; }
+.trail-content-block p { color: var(--text); font-size: 0.95rem; margin-bottom: 1.2rem; line-height: 1.6; }
+.vid-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; background: #000; border: 1px solid var(--border); }
+.vid-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+</style>
 </head>
 <body>
 <!-- NAV -->
@@ -98,37 +104,52 @@ function renderTrailDetail(id) {
   const trail = trails.find(t => t.id === id);
   const s = getState();
   const ts = s.trails[id] || {completed:[],xpEarned:0};
+  
   document.getElementById('det-title').textContent = trail.icon + ' ' + trail.title;
   document.getElementById('det-desc').textContent = trail.desc;
   document.getElementById('d-xpe').textContent = ts.xpEarned + ' XP';
   document.getElementById('d-xpt').textContent = trail.totalXP + ' XP';
-  document.getElementById('d-prog').textContent = ts.completed.length + '/5';
+  document.getElementById('d-prog').textContent = ts.completed.length + '/' + trail.activities.length;
+  
   const path = document.getElementById('node-path');
   path.innerHTML = '';
+
+  if(trail.content && trail.content.video) {
+    const contentBlock = document.createElement('div');
+    contentBlock.className = 'trail-content-block';
+    contentBlock.innerHTML = `
+      <h3>📚 Resumo da Trilha</h3>
+      <p>${trail.content.text}</p>
+      <div class="vid-wrap">
+        <iframe src="${trail.content.video}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      </div>
+    `;
+    path.appendChild(contentBlock);
+  }
+
   trail.activities.forEach((act, i) => {
     const isDone = ts.completed.includes(i);
     const isCurrent = !isDone && (i === 0 || ts.completed.includes(i-1));
     const isLocked = !isDone && !isCurrent;
-    if (i > 0) {
+    
+    if (i > 0 || trail.content) {
       const conn = document.createElement('div');
       conn.className = 'connector' + (ts.completed.includes(i-1) ? ' done' : '');
       path.appendChild(conn);
     }
+    
     const node = document.createElement('div');
     node.className = 'trail-node ' + (isDone ? 'done' : isCurrent ? 'current' : 'locked');
     const diffLabel = DIFFS[i], diffCls = DCLS[i];
     node.innerHTML = `
       <div class="ncircle">
         ${isLocked ? '🔒' : act.icon}
-        ${i > 0 && !isLocked ? `<div class="diff-pip ${i>=4?'expert':i>=2?'hard':''}">${diffLabel}</div>` : ''}
         ${isDone ? '<div class="ncheck">✓</div>' : ''}
       </div>
       <div class="ninfo">
         <h4>${act.title}</h4>
         <p>${act.desc.substring(0,58)}…</p>
-        ${isDone ? `<div class="nxp">+${act.xp} XP ✓</div>` : ''}
-        ${isCurrent ? `<div class="nxp">+${act.xp} XP disponível</div><div class="ndiff ${diffCls}">Dificuldade: ${diffLabel}</div>` : ''}
-        ${isLocked ? '<div class="nlocked">🔒 Complete a etapa anterior</div>' : ''}
+        ${isCurrent ? `<div class="ndiff ${diffCls}">Dificuldade: ${diffLabel}</div>` : ''}
       </div>
       ${!isLocked
         ? `<button class="nbtn" onclick="openAct('${id}',${i},0)">${isDone ? 'Revisar' : 'Iniciar'}</button>`
@@ -224,13 +245,11 @@ function showRes(success, xp, review, trailId, actIdx) {
     rb.querySelector('#res-title').textContent = 'Atividade já concluída!';
     rb.querySelector('#res-xp').textContent = '+' + xp + ' XP';
     rb.querySelector('#res-msg').textContent = 'Você completou esta atividade. Revise quando quiser!';
-    rb.querySelector('#res-acts').innerHTML = `<button class="btn-close-act" onclick="closeAct()">Fechar</button>`;
   } else if (success) {
     rb.querySelector('#res-em').textContent = '🎉';
     rb.querySelector('#res-title').textContent = 'Resposta Correta!';
     rb.querySelector('#res-xp').textContent = '+' + xp + ' XP';
     rb.querySelector('#res-msg').textContent = 'Ótimo! Você desbloqueou a próxima etapa. Continue sua jornada!';
-    rb.querySelector('#res-acts').innerHTML = `<button class="btn-close-act" onclick="closeAct()">Continuar ✓</button>`;
     showToast('+' + xp + ' XP ganhos! 🌱');
   } else {
     rb.querySelector('#res-em').textContent = '😅';

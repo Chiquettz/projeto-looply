@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Início — Looply</title>
+<title>Início - Looply</title>
 <link rel="stylesheet" href="style.css">
 
 </head>
@@ -72,13 +72,13 @@
       <h1>Aprenda sobre o<br><span class="g">meio ambiente</span><br>e <span class="b">mude o mundo.</span></h1>
       <p class="hero-sub">Trilhas temáticas sobre sustentabilidade, reciclagem e conservação. Complete desafios progressivos, ganhe XP e vire Guardião do Planeta!</p>
       <div class="hero-ctas">
-        <button class="btn-primary" onclick="ctaStart()">Começar Agora 🌱</button>
+        <button class="btn-primary" onclick="ctaStart()">Começar Agora</button>
         <button class="btn-secondary" onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})">Como funciona?</button>
       </div>
       <div class="stats-row">
-        <div class="stat"><div class="stat-num">6</div><div class="stat-lbl">Trilhas</div></div>
+        <div class="stat"><div class="stat-num">10</div><div class="stat-lbl">Trilhas</div></div>
         <div class="stat"><div class="stat-num">30+</div><div class="stat-lbl">Atividades</div></div>
-        <div class="stat"><div class="stat-num">1800</div><div class="stat-lbl">XP Total</div></div>
+        <div class="stat"><div class="stat-num">2500</div><div class="stat-lbl">XP Total</div></div>
         <div class="stat"><div class="stat-num">♻️</div><div class="stat-lbl">Pelo planeta</div></div>
       </div>
     </div>
@@ -93,7 +93,7 @@
     <div class="feat-grid">
       <div class="feat-card"><div class="feat-ic">♻️</div><h3>Sustentabilidade</h3><p>Todo conteúdo aborda reciclagem, energia limpa, biodiversidade e práticas sustentáveis do cotidiano.</p></div>
       <div class="feat-card"><div class="feat-ic">🗺️</div><h3>Trilhas Progressivas</h3><p>6 trilhas com 5 atividades cada. Do básico ao expert, com dificuldade crescente real.</p></div>
-      <div class="feat-card"><div class="feat-ic">🔓</div><h3>Desbloqueio Sequencial</h3><p>Só avance quando completar a etapa atual. Cada conquista é genuína e bem merecida.</p></div>
+      <div class="feat-card"><div class="feat-ic">🔓</div><h3>Desbloqueio Sequencial</h3><p>Só avance quando completar a etapa atual. Desbloquando um game no final como recompensa.</p></div>
       <div class="feat-card"><div class="feat-ic">🔄</div><h3>Segunda Chance</h3><p>Errou? Repita a pergunta ou peça uma questão alternativa sobre o mesmo tema.</p></div>
       <div class="feat-card"><div class="feat-ic">⚡</div><h3>Sistema de XP</h3><p>Ganhe pontos e veja seu nível crescer de Semente a Guardião do Planeta.</p></div>
       <div class="feat-card"><div class="feat-ic">🌓</div><h3>Tema Claro &amp; Escuro</h3><p>Escolha o tema visual que preferir para uma experiência mais confortável.</p></div>
@@ -112,8 +112,10 @@
         <div class="step"><div class="snum">2</div><div><h4>Escolha uma Trilha</h4><p>Explore temas como reciclagem, energia limpa, biodiversidade e mais.</p></div></div>
         <div class="step"><div class="snum">3</div><div><h4>Complete as Atividades</h4><p>Perguntas ficam mais difíceis a cada etapa. Acerte para desbloquear a próxima!</p></div></div>
         <div class="step"><div class="snum">4</div><div><h4>Ganhe XP &amp; Suba de Nível</h4><p>Acumule XP, complete trilhas e receba bônus. Seja um Guardião do Planeta!</p></div></div>
+        <div class="step"><div class="snum">5</div><div><h4>Recompensas Garantidas</h4><p>Consiga recompensas exclusivas com sua XP em pontos físicos dos nossos parceiros!</p></div></div>
+
       </div>
-      <div class="how-cta"><button class="btn-primary" onclick="ctaStart()">Criar Conta Grátis 🌿</button></div>
+      <div class="how-cta"><button class="btn-primary" onclick="ctaStart()">Criar Conta Grátis</button></div>
     </div>
   </div>
 
@@ -144,7 +146,7 @@
       </div>
       <div class="ft-bottom">
         <p>© 2026 Looply · Jogue. Recicle. Conserve.</p>
-        <div class="eco-badge">🌱 Comprometidos com o planeta</div>
+        <div class="eco-badge">Comprometidos com o planeta</div>
       </div>
     </div>
   </footer>
@@ -152,24 +154,54 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+
 <script>
+
 // Particles
 (function(){
   const canvas = document.getElementById('ptc');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  let W,H,pts=[];
-  function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
-  function mkPt(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.5,dx:(Math.random()-.5)*.3,dy:-Math.random()*.4-.1,o:Math.random()*.5+.2};}
-  function init(){pts=Array.from({length:80},mkPt);}
+  const heroSection = document.querySelector('.hero'); 
+  let W, H, pts = [];
+
+  function resize(){
+    W = canvas.width = heroSection.clientWidth;
+    H = canvas.height = heroSection.clientHeight;
+  }
+
+  function mkPt(){
+    return {
+      x: Math.random() * W, 
+      y: Math.random() * H, 
+      r: Math.random() * 1.5 + 0.5, 
+      dx: (Math.random() - 0.5) * 0.3, 
+      dy: -Math.random() * 0.4 - 0.1, 
+      o: Math.random() * 0.5 + 0.2
+    };
+  }
+
+  function init(){
+    pts = Array.from({length: 80}, mkPt);
+  }
+
   function tick(){
     ctx.clearRect(0,0,W,H);
-    const g=document.documentElement.getAttribute('data-theme')==='dark'?'93,194,100':'61,148,66';
-    pts.forEach(p=>{p.x+=p.dx;p.y+=p.dy;if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${g},${p.o})`;ctx.fill();});
+    const g = document.documentElement.getAttribute('data-theme') === 'dark' ? '93,194,100' : '61,148,66';
+    pts.forEach(p => {
+      p.x += p.dx; 
+      p.y += p.dy; 
+      if(p.y < -5){ p.y = H + 5; p.x = Math.random() * W; }
+      ctx.beginPath(); 
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); 
+      ctx.fillStyle = `rgba(${g},${p.o})`; 
+      ctx.fill();
+    });
     requestAnimationFrame(tick);
   }
-  resize();init();tick();
-  window.addEventListener('resize',()=>{resize();init();});
+
+  resize(); init(); tick();
+  window.addEventListener('resize', () => { resize(); init(); });
 })();
 </script>
 </body></html>
