@@ -10,6 +10,7 @@
   .game-wrapper {
     max-width: 900px; margin: 0 auto; padding: 1rem;
     display: flex; flex-direction: column; gap: 2rem;
+    touch-action: none; /* Evita que a tela faça scroll ao tentar jogar */
   }
   .game-hud {
     display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;
@@ -21,40 +22,44 @@
   .hud-item span { color: var(--green); font-size: 1.2rem; }
   
   .play-area {
-    height: 250px; background: var(--bg2); border: 2px dashed var(--border);
+    height: 300px; background: var(--bg2); border: 2px dashed var(--border);
     border-radius: 16px; position: relative; overflow: hidden;
   }
   .trash-item {
-    position: absolute; font-size: 3rem; cursor: grab; user-select: none;
+    position: absolute; font-size: 3.5rem; cursor: grab; user-select: none;
     transition: transform 0.2s; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-    z-index: 10;
+    z-index: 10; display: flex; align-items: center; justify-content: center;
   }
   .trash-item:active { cursor: grabbing; transform: scale(1.1); }
   
   .bins-container {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem;
   }
+  @media (min-width: 768px) {
+    .bins-container { grid-template-columns: repeat(6, 1fr); }
+  }
+  
   .bin-zone {
-    height: 140px; border-radius: 12px; border: 3px solid transparent;
+    height: 120px; border-radius: 12px; border: 3px solid transparent;
     display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
-    padding-bottom: 1rem; color: #fff; font-weight: 900; font-size: 0.85rem;
+    padding-bottom: 0.8rem; color: #fff; font-weight: 900; font-size: 0.75rem;
     transition: transform 0.2s, border-color 0.2s; position: relative;
   }
-  .bin-zone::before { content: "♻️"; font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.5rem; }
+  .bin-zone::before { content: "♻️"; font-size: 2.2rem; opacity: 0.3; margin-bottom: 0.5rem; }
   .bin-zone.drag-over { transform: scale(1.08); border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.4); }
   
-  /* Cores das Lixeiras Oficiais */
-  .bin-zone[data-type="papel"] { background-color: #3b82f6; } /* Azul */
-  .bin-zone[data-type="plastico"] { background-color: #ef4444; } /* Vermelho */
-  .bin-zone[data-type="vidro"] { background-color: #10b981; } /* Verde */
-  .bin-zone[data-type="metal"] { background-color: #eab308; } /* Amarelo */
-  .bin-zone[data-type="organico"] { background-color: #3b1e09; } /* Marrom */
-  .bin-zone[data-type="eletronico"] { background-color: #f97316; } /* Laranja */
+  /* Cores das Lixeiras */
+  .bin-zone[data-type="papel"] { background-color: #3b82f6; } 
+  .bin-zone[data-type="plastico"] { background-color: #ef4444; } 
+  .bin-zone[data-type="vidro"] { background-color: #10b981; } 
+  .bin-zone[data-type="metal"] { background-color: #eab308; } 
+  .bin-zone[data-type="organico"] { background-color: #8B4513; } 
+  .bin-zone[data-type="eletronico"] { background-color: #f97316; } 
   
   .game-overlay {
-    position: absolute; inset: 0; background: rgba(0,0,0,0.8);
+    position: absolute; inset: 0; background: rgba(0,0,0,0.85);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 100; border-radius: 16px; color: #fff;
+    z-index: 100; border-radius: 16px; color: #fff; text-align: center; padding: 1rem;
   }
 </style>
 </head>
@@ -102,19 +107,17 @@
 <div class="overlay" id="auth-ov">
   <div class="modal">
     <button class="modal-x" onclick="closeAuth()">✕</button>
-    <div class="modal-logo"><img class="logo-img" src="logo.png" alt="Looply"></div>
+    <div class="modal-logo"><img class="logo-img" src="imgs/looply-logo.png" alt="Looply"></div>
     <div id="auth-content"></div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
-
 
 <div class="pg-pad">
   <div class="td-hdr" style="text-align: center;">
     <button class="back-btn" onclick="goTo('trails')">← Voltar para Trilhas</button>
-    <h2>Recicle Certo</h2>
+    <h2>🎮 Super Recicla</h2>
     <p>Arraste rapidamente os resíduos para a lixeira correta antes que o tempo acabe!</p>
     <div class="game-hud">
       <div class="hud-item">⏱️ Tempo: <span id="timer-display">45</span>s</div>
@@ -143,8 +146,8 @@
 </div>
 
 <script src="app.js"></script>
+
 <script>
-// Base de dados de lixos do jogo
 const itemDB = [
   { emoji: '📰', type: 'papel' }, { emoji: '📦', type: 'papel' }, { emoji: '🧻', type: 'papel' },
   { emoji: '🥤', type: 'plastico' }, { emoji: '🛍️', type: 'plastico' }, { emoji: '🧴', type: 'plastico' },
@@ -157,9 +160,12 @@ const itemDB = [
 let score = 0, time = 45, combo = 1;
 let gameInterval, spawnInterval;
 const playArea = document.getElementById('play-area');
-let draggedElementId = null;
 
+// Variáveis de suporte para o Touch Mobile
+let activeTouchItem = null;
+let offsetX = 0; let offsetY = 0;
 
+// 1. LÓGICA DE DRAG & DROP PARA PC (MOUSE)
 document.querySelectorAll('.bin-zone').forEach(bin => {
   bin.addEventListener('dragover', e => { e.preventDefault(); bin.classList.add('drag-over'); });
   bin.addEventListener('dragenter', e => { e.preventDefault(); bin.classList.add('drag-over'); });
@@ -168,30 +174,98 @@ document.querySelectorAll('.bin-zone').forEach(bin => {
   bin.addEventListener('drop', e => {
     e.preventDefault();
     bin.classList.remove('drag-over');
-    
-    // Pega o ID que foi setado no dragstart
     const id = e.dataTransfer.getData('text/plain');
     const draggedEl = document.getElementById(id);
-    if (!draggedEl) return; // Segurança
-
-    const expectedType = bin.getAttribute('data-type');
-    const actualType = draggedEl.getAttribute('data-type');
-
-    if (expectedType === actualType) {
-      // Acerto
-      score += (10 * combo);
-      combo++;
-      draggedEl.remove();
-      showToast('✅ +' + (10 * (combo-1)) + ' pts');
-    } else {
-      score = Math.max(0, score - 20); 
-      combo = 1;
-      showToast('❌ Lixeira Errada! -20 pts');
-    }
-    updateHud();
+    if (draggedEl) checkMatch(draggedEl, bin);
   });
 });
 
+// 2. LÓGICA DE DRAG & DROP PARA MOBILE (TOUCH)
+function handleTouchStart(e) {
+  activeTouchItem = e.target;
+  const touch = e.touches[0];
+  const rect = activeTouchItem.getBoundingClientRect();
+  
+  // Pega a diferença entre onde o dedo tocou e o topo/esquerda do item
+  offsetX = touch.clientX - rect.left;
+  offsetY = touch.clientY - rect.top;
+  
+  activeTouchItem.style.transition = 'none';
+  activeTouchItem.style.zIndex = 1000;
+  activeTouchItem.style.transform = 'scale(1.1)';
+}
+
+function handleTouchMove(e) {
+  if (!activeTouchItem) return;
+  e.preventDefault(); // Impede a tela de rolar
+  
+  const touch = e.touches[0];
+  const areaRect = playArea.getBoundingClientRect();
+  
+  // Atualiza a posição do lixo seguindo o dedo
+  let newX = touch.clientX - areaRect.left - offsetX;
+  let newY = touch.clientY - areaRect.top - offsetY;
+  activeTouchItem.style.left = newX + 'px';
+  activeTouchItem.style.top = newY + 'px';
+
+  // Esconde o item rapidinho para descobrir qual lixeira está embaixo do dedo
+  activeTouchItem.style.visibility = 'hidden';
+  const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  activeTouchItem.style.visibility = 'visible';
+
+  // Gerencia o efeito de 'Hover' na lixeira
+  document.querySelectorAll('.bin-zone').forEach(b => b.classList.remove('drag-over'));
+  if (elemBelow) {
+    const bin = elemBelow.closest('.bin-zone');
+    if (bin) bin.classList.add('drag-over');
+  }
+}
+
+function handleTouchEnd(e) {
+  if (!activeTouchItem) return;
+  const touch = e.changedTouches[0];
+  
+  // Descobre em qual lixeira o dedo soltou
+  activeTouchItem.style.visibility = 'hidden';
+  const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  activeTouchItem.style.visibility = 'visible';
+  
+  document.querySelectorAll('.bin-zone').forEach(b => b.classList.remove('drag-over'));
+  const bin = elemBelow ? elemBelow.closest('.bin-zone') : null;
+
+  if (bin) {
+    checkMatch(activeTouchItem, bin);
+  } else {
+    // Se soltar fora de uma lixeira, reseta o visual
+    activeTouchItem.style.transition = 'transform 0.2s';
+    activeTouchItem.style.transform = 'scale(1)';
+  }
+  
+  activeTouchItem.style.zIndex = 10;
+  activeTouchItem = null;
+}
+
+// 3. LÓGICA DE VERIFICAÇÃO E PONTUAÇÃO (Usada por PC e Mobile)
+function checkMatch(item, bin) {
+  const expectedType = bin.getAttribute('data-type');
+  const actualType = item.getAttribute('data-type');
+
+  if (expectedType === actualType) {
+    score += (10 * combo);
+    combo++;
+    item.remove();
+    showToast('✅ +' + (10 * (combo-1)) + ' pts');
+  } else {
+    score = Math.max(0, score - 20);
+    combo = 1;
+    showToast('❌ Errou! -20 pts');
+    item.style.transition = 'transform 0.2s';
+    item.style.transform = 'scale(1)'; // Devolve o tamanho
+  }
+  updateHud();
+}
+
+// 4. MECÂNICAS PRINCIPAIS DO JOGO
 function startGame() {
   document.getElementById('start-overlay').style.display = 'none';
   playArea.innerHTML = ''; 
@@ -220,18 +294,22 @@ function spawnTrash() {
   el.draggable = true;
   el.id = 'trash_' + Math.random().toString(36).substr(2, 9);
   
-  const maxX = playArea.clientWidth - 60;
-  const maxY = playArea.clientHeight - 60;
+  const maxX = playArea.clientWidth - 70;
+  const maxY = playArea.clientHeight - 70;
   el.style.left = Math.floor(Math.random() * maxX) + 'px';
   el.style.top = Math.floor(Math.random() * maxY) + 'px';
 
+  // Eventos de PC (Mouse)
   el.addEventListener('dragstart', e => {
     e.dataTransfer.setData('text/plain', el.id);
     setTimeout(() => el.style.opacity = '0.4', 0);
   });
-  el.addEventListener('dragend', () => {
-    el.style.opacity = '1';
-  });
+  el.addEventListener('dragend', () => el.style.opacity = '1');
+
+  // Eventos de Mobile (Touch)
+  el.addEventListener('touchstart', handleTouchStart, {passive: false});
+  el.addEventListener('touchmove', handleTouchMove, {passive: false});
+  el.addEventListener('touchend', handleTouchEnd);
 
   playArea.appendChild(el);
 }
@@ -245,9 +323,9 @@ function updateHud() {
 function endGame() {
   clearInterval(gameInterval);
   clearInterval(spawnInterval);
-  playArea.innerHTML = ''; // Limpa tela
+  playArea.innerHTML = ''; 
   
-  const xpGained = Math.floor(score / 5); 
+  const xpGained = Math.floor(score / 5);
   
   const endOverlay = document.createElement('div');
   endOverlay.className = 'game-overlay';
